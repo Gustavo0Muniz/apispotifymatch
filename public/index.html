@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Match Ultra+</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        /* --- Base Styles and Variables (Keep As Is) --- */
+        :root {
+            --spotify-green: #1DB954;
+            --spotify-dark-green: #1AA34A;
+            --spotify-black: #121212;
+            --spotify-dark: #181818;
+            --spotify-light: #FFFFFF;
+            --spotify-gray: #B3B3B3;
+            --spotify-dark-gray: #282828;
+            --gradient-primary: linear-gradient(135deg, #1DB954 0%, #1ED760 100%);
+            --gradient-secondary: linear-gradient(135deg, #535353 0%, #282828 100%);
+            --gradient-dark: linear-gradient(to bottom, #121212, #000000);
+            --box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+            --box-shadow-hover: 0 20px 50px rgba(29, 185, 84, 0.4);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --border-radius: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Open Sans', sans-serif; background: var(--spotify-black); color: var(--spotify-light); min-height: 100vh; background-image: var(--gradient-dark); background-attachment: fixed; line-height: 1.6; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; position: relative; overflow-x: hidden; }
+
+        /* --- Particle Effect (Keep As Is) --- */
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+        .particle { position: absolute; background: var(--spotify-green); border-radius: 50%; opacity: 0.3; animation: float 15s infinite linear; will-change: transform, opacity; }
+        @keyframes float { 0% { transform: translateY(0vh) translateX(0vw) rotate(0deg); opacity: 0.3; } 50% { transform: translateY(-15vh) translateX(5vw) rotate(180deg); opacity: 0.1; } 75% { transform: translateY(5vh) translateX(-5vw) rotate(270deg); opacity: 0.2; } 100% { transform: translateY(0vh) translateX(0vw) rotate(360deg); opacity: 0.3; } }
+
+        /* --- Header (Keep As Is) --- */
+        header { text-align: center; margin-bottom: 3rem; position: relative; z-index: 1; }
+        .logo { font-family: 'Montserrat', sans-serif; font-size: 3.5rem; font-weight: 900; color: var(--spotify-light); margin-bottom: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 1rem; position: relative; padding: 0 1rem; }
+        .logo i { color: var(--spotify-green); font-size: 3rem; }
+        .logo::before, .logo::after { content: '♪'; color: var(--spotify-green); font-size: 2rem; opacity: 0.6; animation: pulse 2s infinite alternate; position: absolute; top: 50%; transform: translateY(-50%); }
+        .logo::before { left: -1.5rem; animation-delay: 0s; } .logo::after { right: -1.5rem; animation-delay: 1s; }
+        @keyframes pulse { from { transform: translateY(-50%) scale(1); opacity: 0.6; } to { transform: translateY(-50%) scale(1.2); opacity: 1; } }
+        .subtitle { color: var(--spotify-gray); font-size: 1.2rem; max-width: 700px; margin: 0 auto 3rem; line-height: 1.8; position: relative; }
+
+        /* --- User Card (Keep As Is - Stats Populated by JS) --- */
+        .user-section { display: flex; justify-content: center; gap: 3rem; margin-bottom: 4rem; flex-wrap: wrap; position: relative; z-index: 1; }
+        .user-card { background: var(--spotify-dark); border-radius: var(--border-radius); padding: 2rem; width: 100%; max-width: 450px; text-align: center; transition: var(--transition); box-shadow: var(--box-shadow); border: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+        .user-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--gradient-primary); opacity: 0; transition: var(--transition); transform: scaleX(0); transform-origin: left; }
+        .user-card.active::before { opacity: 1; transform: scaleX(1); }
+        .user-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: var(--box-shadow-hover); }
+        .user-card.active { border-color: rgba(29, 185, 84, 0.3); background: rgba(29, 185, 84, 0.03); }
+        .user-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 1.5rem; border: 3px solid rgba(255, 255, 255, 0.1); transition: var(--transition); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); position: relative; flex-shrink: 0; }
+        .user-avatar::after { content: ''; position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px; border-radius: 50%; border: 2px solid var(--spotify-green); opacity: 0; transition: var(--transition); pointer-events: none; }
+        .user-card.active .user-avatar::after { opacity: 0.5; animation: pulse-ring 2s infinite ease-out; }
+        @keyframes pulse-ring { 0% { transform: scale(0.95); opacity: 0.5; } 70% { transform: scale(1.15); opacity: 0; } 100% { transform: scale(0.95); opacity: 0; } }
+        .user-name { font-family: 'Montserrat', sans-serif; font-size: 1.6rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--spotify-light); transition: var(--transition); width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-status { color: var(--spotify-gray); font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .user-stats { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; width: 100%; }
+        .stat-item { background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 0.6rem 1rem; min-width: 90px; flex-grow: 1; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .stat-item .stat-value { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.2rem; font-weight: 700; color: var(--spotify-green); font-size: 1.1rem; }
+        .stat-item .stat-value i { font-size: 1rem; line-height: 1; margin: 0; }
+        .stat-label { color: var(--spotify-gray); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* --- Controls Section (Keep As Is) --- */
+        .controls { display: flex; flex-direction: column; align-items: center; margin-bottom: 4rem; position: relative; z-index: 1; gap: 1.5rem; }
+        .time-range-container { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+        .time-range-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid transparent; border-radius: 30px; padding: 0.8rem 1.5rem; color: var(--spotify-gray); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; }
+        .time-range-btn.active { background: var(--spotify-green); border-color: var(--spotify-dark-green); color: var(--spotify-black); box-shadow: 0 4px 15px rgba(29, 185, 84, 0.2); }
+        .time-range-btn:hover:not(.active) { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); color: var(--spotify-light); }
+
+        /* --- Buttons (Keep As Is) --- */
+        .btn { background: var(--gradient-primary); color: var(--spotify-light); border: none; border-radius: 30px; padding: 1rem 2.2rem; font-size: 1rem; font-weight: 700; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; gap: 0.8rem; box-shadow: 0 8px 25px rgba(29, 185, 84, 0.3); position: relative; overflow: hidden; z-index: 1; text-align: center; white-space: nowrap; min-width: 220px; }
+        .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%); transition: left 0.6s ease-out; z-index: 1; }
+        .btn:hover { transform: translateY(-3px) scale(1.03); box-shadow: var(--box-shadow-hover); } .btn:hover::before { left: 100%; }
+        .btn-secondary { background: var(--gradient-secondary); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
+        .btn-secondary:hover { background: var(--gradient-primary); box-shadow: var(--box-shadow-hover); }
+        .btn-secondary::before { background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%); }
+        .btn-logged { background: rgba(29, 185, 84, 0.15); border: 1px solid var(--spotify-green); color: var(--spotify-green); box-shadow: none; cursor: default; }
+        .btn-logged:hover { transform: none; box-shadow: none; background: rgba(29, 185, 84, 0.15); color: var(--spotify-green); }
+        .btn-logged::before { content: none; }
+        .btn-disabled { background: var(--spotify-dark-gray); border: 1px solid #444; color: var(--spotify-gray); cursor: not-allowed; opacity: 0.7; transform: none !important; box-shadow: none !important; }
+        .btn-disabled:hover::before { content: none; display: none; } .btn-disabled i.fa-spinner { color: var(--spotify-gray); }
+
+        /* --- Loading Indicator (Keep As Is) --- */
+        #loading { text-align: center; margin: 3rem 0; display: none; position: relative; z-index: 1; }
+        .loading-content { display: inline-flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+        .music-wave { display: flex; align-items: flex-end; height: 50px; gap: 5px; }
+        .wave-bar { width: 6px; background: var(--spotify-green); border-radius: 3px; animation: wave 1.5s infinite ease-in-out; }
+        @keyframes wave { 0%, 100% { height: 10px; background-color: var(--spotify-dark-green); } 25% { height: 40px; background-color: var(--spotify-green); } 50% { height: 20px; background-color: #1ABC5E; } 75% { height: 50px; background-color: var(--spotify-green); } }
+        .wave-bar:nth-child(1) { animation-delay: 0.1s; } .wave-bar:nth-child(2) { animation-delay: 0.3s; } .wave-bar:nth-child(3) { animation-delay: 0.5s; } .wave-bar:nth-child(4) { animation-delay: 0.2s; } .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+        #loading p { color: var(--spotify-gray); font-weight: 600; }
+
+        /* --- Results Section (Keep As Is) --- */
+        #results { background: var(--spotify-dark); border-radius: var(--border-radius); padding: 2rem 3rem; margin-top: 2rem; box-shadow: var(--box-shadow); display: none; position: relative; overflow: hidden; z-index: 1; border-top: 4px solid var(--spotify-green); }
+        #results::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at top right, rgba(29, 185, 84, 0.05), transparent 70%); pointer-events: none; z-index: -1; }
+        .results-header { text-align: center; margin-bottom: 2rem; position: relative; }
+        .results-header h2 { font-family: 'Montserrat', sans-serif; font-size: 2.2rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 1rem; position: relative; display: inline-block; }
+        .results-header h2::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 80px; height: 3px; background: var(--gradient-primary); border-radius: 2px; }
+
+        /* --- Compatibility Score Display (CSS Fix Applied) --- */
+        .compatibility-container { display: flex; flex-direction: column; align-items: center; margin: 2rem 0 3rem; }
+        .compatibility-circle { width: 180px; height: 180px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 1.5rem; }
+        .circle-bg { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 12px solid rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 15px rgba(0,0,0,0.3); }
+        #compatibilityProgress { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(var(--spotify-green) 0%, rgba(255, 255, 255, 0.08) 0% 100%); transform: rotate(-90deg); transition: background 1.2s cubic-bezier(0.65, 0, 0.35, 1); z-index: 1; }
+        .compatibility-circle::after { content: ''; position: absolute; width: calc(100% - 24px); height: calc(100% - 24px); background: var(--spotify-dark); border-radius: 50%; z-index: 1; }
+        .compatibility-score { font-size: 4rem; font-weight: 900; font-family: 'Montserrat', sans-serif; color: var(--spotify-light); /* FIXED: White text */ position: relative; line-height: 1; text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5); z-index: 2; /* Ensure score is on top */ }
+        .compatibility-message { text-align: center; color: var(--spotify-gray); font-size: 1.1rem; max-width: 600px; margin: 0 auto 2rem; line-height: 1.7; font-weight: 600; }
+        .compatibility-message .fas { color: var(--spotify-green); margin: 0 3px; }
+
+        /* --- Advanced Stats Section (Keep As Is) --- */
+        .advanced-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin: 2rem 0 3rem; }
+        .stat-card { background: rgba(255, 255, 255, 0.03); border-radius: var(--border-radius); padding: 1.5rem; text-align: center; transition: var(--transition); border: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(29, 185, 84, 0.1) 0%, transparent 70%); opacity: 0; transition: opacity 0.5s ease; pointer-events: none; }
+        .stat-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border-color: rgba(29, 185, 84, 0.2); } .stat-card:hover::before { opacity: 1; }
+        .stat-icon { font-size: 1.8rem; color: var(--spotify-green); margin-bottom: 0.8rem; line-height: 1; }
+        .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--spotify-light); margin-bottom: 0.3rem; font-family: 'Montserrat', sans-serif; line-height: 1.2; }
+        .stat-card .stat-label { color: var(--spotify-gray); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- Section Titles (Keep As Is) --- */
+        .section-title { font-family: 'Montserrat', sans-serif; font-size: 1.6rem; font-weight: 600; color: var(--spotify-light); margin: 3rem 0 1.5rem; display: flex; align-items: center; gap: 0.8rem; position: relative; }
+        .section-title::after { content: ''; flex-grow: 1; height: 1px; background: linear-gradient(to right, rgba(29, 185, 84, 0.3), transparent); margin-left: 1rem; }
+        .section-title i { color: var(--spotify-green); font-size: 1.4rem; }
+
+        /* --- Item Grid & Cards (Keep As Is) --- */
+        .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .item-card { background: rgba(40, 40, 40, 0.8); border-radius: calc(var(--border-radius) / 2); padding: 1rem; display: flex; align-items: center; gap: 1rem; transition: var(--transition); border: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden; }
+        .item-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); border-color: rgba(29, 185, 84, 0.3); background: rgba(45, 45, 45, 0.9); }
+        .item-image { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); transition: var(--transition); flex-shrink: 0; }
+        .artist-card .item-image { border-radius: 50%; }
+        .item-card:hover .item-image { transform: scale(1.08); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); }
+        .item-info { flex: 1; min-width: 0; }
+        .item-title { color: var(--spotify-light); font-weight: 600; font-size: 1rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s ease; display: block; text-decoration: none; }
+        .item-title:hover { color: var(--spotify-green); }
+        .item-subtitle { color: var(--spotify-gray); font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-actions { display: flex; gap: 0.6rem; margin-top: 0.6rem; align-items: center; }
+        .action-btn { background: rgba(255, 255, 255, 0.08); border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--spotify-gray); cursor: pointer; transition: var(--transition); font-size: 0.9rem; flex-shrink: 0; text-decoration: none; position: relative; }
+        .action-btn:hover { background: var(--spotify-green); color: var(--spotify-black); transform: scale(1.1); }
+        .action-btn.liked { background: rgba(29, 185, 84, 0.2); } .action-btn.liked i.fa-heart { color: var(--spotify-green); font-weight: 900; }
+        .play-btn.loading i { animation: spin 1s linear infinite; color: var(--spotify-green); }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .play-btn[disabled] { opacity: 0.5; cursor: not-allowed; background: rgba(255, 255, 255, 0.05); color: #666; transform: none; }
+        .play-btn[disabled]:hover { background: rgba(255, 255, 255, 0.05); color: #666; } .play-btn[disabled] i.fa-ban { color: #666; }
+        .album-card { background: rgba(40, 40, 40, 0.8); border-radius: calc(var(--border-radius) / 2); padding: 1rem; display: flex; flex-direction: column; align-items: center; transition: var(--transition); border: 1px solid rgba(255, 255, 255, 0.05); text-align: center; }
+        .album-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); border-color: rgba(29, 185, 84, 0.3); background: rgba(45, 45, 45, 0.9); }
+        .album-image { width: 130px; height: 130px; border-radius: 8px; object-fit: cover; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); margin-bottom: 1rem; transition: var(--transition); }
+        .album-card:hover .album-image { transform: scale(1.05); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); }
+        .album-info { width: 100%; } .album-title { color: var(--spotify-light); font-weight: 600; font-size: 1rem; margin-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; text-decoration: none; }
+        .album-title:hover { color: var(--spotify-green); } .album-artist { color: var(--spotify-gray); font-size: 0.85rem; margin-bottom: 0.5rem; }
+        .album-meta { display: flex; justify-content: space-around; align-items: center; color: var(--spotify-gray); font-size: 0.8rem; margin-bottom: 10px; width: 100%; flex-wrap: wrap; gap: 5px; }
+        .album-meta span { background: rgba(255, 255, 255, 0.05); padding: 2px 6px; border-radius: 4px; } .album-meta span i { margin-right: 3px; color: var(--spotify-green); }
+
+        /* --- Genres Chart Section (Keep As Is) --- */
+        .genres-chart-section { background: rgba(24, 24, 24, 0.8); border-radius: var(--border-radius); padding: 2rem; margin: 3rem 0; box-shadow: var(--box-shadow); }
+        .chart-container { position: relative; height: 350px; width: 100%; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; }
+        .chart-container canvas { max-height: 100%; max-width: 100%; }
+        .chart-container .no-items { flex-grow: 1; text-align: center; color: var(--spotify-gray); font-style: italic; }
+        .genre-tags { text-align: center; margin-top: 1.5rem; color: var(--spotify-gray); font-size: 0.9rem; }
+        .genre-tag { display: inline-block; background: rgba(29, 185, 84, 0.1); border: 1px solid rgba(29, 185, 84, 0.3); border-radius: 15px; padding: 0.4rem 0.9rem; margin: 5px; font-size: 0.85rem; font-weight: 600; color: var(--spotify-green); transition: background-color 0.3s ease, color 0.3s ease; cursor: default; }
+        .genre-tag:hover { background: rgba(29, 185, 84, 0.2); }
+
+        /* --- Placeholders & Messages (Keep As Is) --- */
+        .no-items { color: var(--spotify-gray); text-align: center; padding: 3rem 1rem; font-style: italic; width: 100%; font-size: 1rem; border-radius: 8px; background: rgba(255, 255, 255, 0.02); }
+        .generated-playlist { background: rgba(29, 185, 84, 0.08); border-radius: var(--border-radius); padding: 2.5rem; margin: 3rem 0; border: 1px dashed rgba(29, 185, 84, 0.4); text-align: center; animation: pulseBorder 2.5s infinite alternate; }
+        @keyframes pulseBorder { from { border-color: rgba(29, 185, 84, 0.4); box-shadow: 0 0 10px rgba(29, 185, 84, 0.1); } to { border-color: rgba(29, 185, 84, 0.7); box-shadow: 0 0 20px rgba(29, 185, 84, 0.3); } }
+        .generated-playlist h3 { color: var(--spotify-light); margin-bottom: 0.8rem; font-family: 'Montserrat', sans-serif; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+        .generated-playlist h3 i { color: var(--spotify-green); } .generated-playlist p { color: var(--spotify-gray); margin-bottom: 1.5rem; font-size: 1rem; }
+        .generated-playlist .btn { margin-top: 0; } .playlist-stats { font-size: 0.9rem; margin-top: 1.5rem; color: var(--spotify-gray); }
+        .error-message { background: rgba(255, 59, 48, 0.1); border-radius: var(--border-radius); padding: 1.5rem 2rem; margin: 2rem 0; border: 1px solid rgba(255, 59, 48, 0.3); border-left: 5px solid #FF3B30; display: none; animation: fadeIn 0.5s ease-out; position: relative; overflow: hidden; z-index: 5; }
+        .error-message.severe-error { background: rgba(200, 30, 20, 0.15); border-color: rgba(200, 30, 20, 0.4); border-left-color: #c81e14; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .error-title { color: #FF6B6B; font-family: 'Montserrat', sans-serif; font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.6rem; font-weight: 600; }
+        .error-title i { line-height: 1; } .error-content { color: var(--spotify-gray); line-height: 1.5; }
+        #toastNotification { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: var(--spotify-green); color: var(--spotify-black); padding: 1rem 1.8rem; border-radius: 8px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3); z-index: 1000; opacity: 0; transition: opacity 0.4s ease, bottom 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); font-weight: 600; font-size: 0.95rem; max-width: 90%; text-align: center; pointer-events: none; }
+        #toastNotification.show { opacity: 1; bottom: 30px; }
+
+        /* --- Share Image Template Styles (Keep As Is) --- */
+        #shareImageTemplate { position: absolute; top: -9999px; left: -9999px; width: 720px; height: auto; min-height: 1280px; padding: 40px; font-family: 'Open Sans', sans-serif; color: var(--spotify-light); background: linear-gradient(160deg, #1e1e1e 0%, #0a0a0a 100%); z-index: -1; visibility: hidden; display: flex; flex-direction: column; }
+        #shareImageTemplate * { box-sizing: border-box; }
+        #shareImageTemplate .share-header { text-align: center; margin-bottom: 30px; font-family: 'Montserrat', sans-serif; flex-shrink: 0; }
+        #shareImageTemplate .share-title { font-size: 3rem; font-weight: 900; color: var(--spotify-green); line-height: 1.1; margin-bottom: 10px; letter-spacing: -1px; text-shadow: 0 2px 5px rgba(29, 185, 84, 0.3); }
+        #shareImageTemplate .share-subtitle { font-size: 1.2rem; color: rgba(255, 255, 255, 0.85); font-weight: 400; }
+        #shareImageTemplate .share-users { display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 35px; flex-shrink: 0; }
+        #shareImageTemplate .share-user { text-align: center; width: 110px; flex-shrink: 0; }
+        #shareImageTemplate .share-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 5px solid var(--spotify-green); box-shadow: 0 6px 18px rgba(0,0,0,0.5); margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
+        #shareImageTemplate .share-user-name { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; font-weight: 600; color: var(--spotify-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px; }
+        #shareImageTemplate .share-heart { font-size: 2.5rem; color: #E91E63; flex-shrink: 0; margin: 0 10px; animation: heartbeat 1.5s infinite ease-in-out; }
+        @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        #shareImageTemplate .share-score-container { text-align: center; margin-bottom: 30px; flex-shrink: 0; }
+        #shareImageTemplate .share-score-label { font-size: 1.1rem; color: rgba(255, 255, 255, 0.75); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+        #shareImageTemplate .share-score-value { font-family: 'Montserrat', sans-serif; font-size: 5.5rem; font-weight: 900; color: var(--spotify-green); text-shadow: 0 0 8px var(--spotify-green), 0 0 15px var(--spotify-green), 0 0 25px rgba(29, 185, 84, 0.7), 0 0 35px rgba(29, 185, 84, 0.5); line-height: 1; }
+        #shareImageTemplate .share-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 20px; margin-bottom: 20px; overflow: hidden; }
+        #shareImageTemplate .share-sections { display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; }
+        #shareImageTemplate .share-section { flex-shrink: 0; }
+        #shareImageTemplate .share-section-title { font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--spotify-green); margin-bottom: 12px; border-bottom: 2px solid rgba(29, 185, 84, 0.4); padding-bottom: 6px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+        #shareImageTemplate .share-section-title i { font-size: 1.2rem; }
+        #shareImageTemplate .share-common-track { display: flex; align-items: center; gap: 20px; background: rgba(255, 255, 255, 0.07); padding: 15px 20px; border-radius: 10px; margin-bottom: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.4); border: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; }
+        #shareImageTemplate .share-track-image { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.5); flex-shrink: 0; }
+        #shareImageTemplate .share-track-info { flex-grow: 1; min-width: 0; }
+        #shareImageTemplate .share-track-label { font-size: 0.8rem; color: var(--spotify-green); margin-bottom: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        #shareImageTemplate .share-track-title { font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--spotify-light); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #shareImageTemplate .share-track-artist { font-size: 1rem; color: rgba(255, 255, 255, 0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #shareImageTemplate .share-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+        #shareImageTemplate .share-album-list-container { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: row; gap: 15px; justify-content: center; flex-wrap: nowrap; overflow: hidden; flex-shrink: 0; }
+        #shareImageTemplate .share-list-item-with-image { display: flex; align-items: center; gap: 12px; color: var(--spotify-gray); font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 5px 0; flex-shrink: 0; }
+        #shareImageTemplate .share-album-list-container .share-list-item-with-image { flex-direction: column; align-items: center; text-align: center; gap: 6px; width: calc(33.33% - 10px); min-width: 150px; max-width: 180px; background: rgba(255, 255, 255, 0.04); border-radius: 10px; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.08); }
+        #shareImageTemplate .share-list-item-image { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; box-shadow: 0 4px 8px rgba(0,0,0,0.4); flex-shrink: 0; }
+        #shareImageTemplate .share-list .share-list-item-image[alt*="artist"] { border-radius: 50%; }
+        #shareImageTemplate .share-album-list-container .share-list-item-image { width: 100px; height: 100px; margin-bottom: 8px; box-shadow: 0 6px 15px rgba(0,0,0,0.5); }
+        #shareImageTemplate .share-list-item-info { flex-grow: 1; min-width: 0; }
+        #shareImageTemplate .share-album-list-container .share-list-item-info { flex-grow: 0; width: 100%; }
+        #shareImageTemplate .share-list-item-title { font-weight: 600; color: var(--spotify-light); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1rem; }
+        #shareImageTemplate .share-list-item-subtitle { color: rgba(255, 255, 255, 0.75); font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #shareImageTemplate .share-album-list-container .share-list-item-title { font-size: 0.95rem; } #shareImageTemplate .share-album-list-container .share-list-item-subtitle { font-size: 0.8rem; }
+        #shareImageTemplate .share-list .no-items, #shareImageTemplate .share-album-list-container .no-items { text-align: center; color: rgba(255, 255, 255, 0.5); padding: 10px 0; font-style: italic; font-size: 0.9rem; width: 100%; }
+        #shareImageTemplate .share-footer { text-align: center; margin-top: auto; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); flex-shrink: 0; padding-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        #shareImageTemplate .spotify-logo { width: 22px; height: 22px; vertical-align: middle; margin: 0 5px; opacity: 0.8; }
+
+        /* --- Responsiveness (Keep As Is) --- */
+        @media (max-width: 1200px) { .user-section { flex-direction: column; align-items: center; gap: 2rem; } .user-card { max-width: 500px; } .item-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); } }
+        @media (max-width: 768px) { .container { padding: 1.5rem; } .logo { font-size: 2.8rem; } .logo i { font-size: 2.5rem; } .logo::before, .logo::after { font-size: 1.5rem; left: -1rem; right: -1rem; } .user-card { padding: 1.5rem; max-width: 90%; } .user-avatar { width: 100px; height: 100px; } .user-name { font-size: 1.4rem; } .user-stats { gap: 0.8rem; } .stat-item { min-width: 80px; padding: 0.5rem 0.8rem; } .stat-item .stat-value { font-size: 1rem; } .stat-item .stat-label { font-size: 0.7rem; } .controls { gap: 1rem; } .time-range-container { gap: 0.5rem; } .btn { padding: 0.9rem 1.8rem; font-size: 0.9rem; min-width: 180px; } #results { padding: 1.5rem 2rem; } .results-header h2 { font-size: 1.8rem; } .compatibility-circle { width: 150px; height: 150px; } .compatibility-circle::after { width: calc(100% - 20px); height: calc(100% - 20px); } .compatibility-score { font-size: 3.5rem; } .compatibility-message { font-size: 1rem; } .advanced-stats { grid-template-columns: repeat(2, 1fr); gap: 1rem; } .stat-card { padding: 1rem; } .stat-icon { font-size: 1.6rem; } .stat-card .stat-value { font-size: 1.6rem; } .stat-card .stat-label { font-size: 0.7rem; } .section-title { font-size: 1.4rem; } .item-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; } .item-card { padding: 0.8rem; gap: 0.8rem; } .item-image { width: 50px; height: 50px; } .item-title { font-size: 0.9rem; } .item-subtitle { font-size: 0.75rem; } .action-btn { width: 30px; height: 30px; font-size: 0.8rem; } .album-card { padding: 0.8rem; } .album-image { width: 100px; height: 100px; } .chart-container { height: 300px; } .genres-chart-section { padding: 1.5rem; } #toastNotification { width: 90%; padding: 0.8rem 1.2rem; font-size: 0.9rem; } }
+        @media (max-width: 480px) { .container { padding: 1rem; } .logo { font-size: 2rem; } .logo i { font-size: 1.8rem; } .logo::before, .logo::after { display: none; } .subtitle { font-size: 1rem; margin-bottom: 2rem; } .user-card { max-width: 100%; } .time-range-container { flex-direction: column; align-items: stretch; } .time-range-btn { width: 100%; justify-content: center; } .btn { width: 90%; max-width: 300px; display: flex; } #results { padding: 1rem 1.5rem; } .results-header h2 { font-size: 1.6rem; } .compatibility-circle { width: 130px; height: 130px; } .compatibility-circle::after { width: calc(100% - 16px); height: calc(100% - 16px); } .compatibility-score { font-size: 3rem; } .advanced-stats { grid-template-columns: repeat(2, 1fr); } .stat-card { padding: 0.8rem; } .stat-icon { font-size: 1.5rem; margin-bottom: 0.5rem; } .stat-card .stat-value { font-size: 1.4rem; } .stat-card .stat-label { font-size: 0.65rem; letter-spacing: 0.5px; } .section-title { font-size: 1.3rem; } .item-grid { grid-template-columns: 1fr; } .item-image { width: 55px; height: 55px; } .item-actions { justify-content: flex-start; } .album-image { width: 120px; height: 120px; } .chart-container { height: 250px; } }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="particles" id="particles"></div>
+
+        <header class="animate__animated animate__fadeInDown">
+            <h1 class="logo">
+                <i class="fab fa-spotify"></i>
+                Spotify Match
+            </h1>
+            <p class="subtitle animate__animated animate__fadeIn animate__delay-05s">
+                Descubra sua conexão musical. Compare gostos, veja a compatibilidade e crie playlists compartilhadas.
+            </p>
+        </header>
+
+        <!-- Error Message Area -->
+        <div class="error-message" id="errorMessage">
+            <h3 class="error-title"><i class="fas fa-exclamation-circle"></i> Ocorreu um erro</h3>
+            <p class="error-content" id="errorContent"></p>
+        </div>
+
+        <!-- User Login/Info Section -->
+        <div class="user-section">
+            <div class="user-card animate__animated animate__fadeInLeft" id="user1Info">
+                <img class="user-avatar" id="user1Img" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="User 1 Profile Picture" crossorigin="anonymous">
+                <h3 class="user-name" id="user1Name">Usuário 1</h3>
+                <p class="user-status" id="user1Status">Não conectado</p>
+                <!-- Stats Populated by JS (initially placeholders) -->
+                <div class="user-stats" id="user1Stats">
+                    <div class="stat-item"><div class="stat-value"><i class="fas fa-music"></i> -</div><div class="stat-label">Músicas</div></div>
+                    <div class="stat-item"><div class="stat-value"><i class="fas fa-users"></i> -</div><div class="stat-label">Artistas</div></div>
+                    <div class="stat-item"><div class="stat-value"><i class="fas fa-tag"></i> -</div><div class="stat-label">Gêneros</div></div>
+                </div>
+                <button id="loginUser1" class="btn btn-secondary">
+                    <i class="fab fa-spotify"></i> Conectar Usuário 1
+                </button>
+            </div>
+
+            <div class="user-card animate__animated animate__fadeInRight" id="user2Info">
+                <img class="user-avatar" id="user2Img" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="User 2 Profile Picture" crossorigin="anonymous">
+                <h3 class="user-name" id="user2Name">Usuário 2</h3>
+                <p class="user-status" id="user2Status">Não conectado</p>
+                 <!-- Stats Populated by JS (initially placeholders) -->
+                <div class="user-stats" id="user2Stats">
+                     <div class="stat-item"><div class="stat-value"><i class="fas fa-music"></i> -</div><div class="stat-label">Músicas</div></div>
+                    <div class="stat-item"><div class="stat-value"><i class="fas fa-users"></i> -</div><div class="stat-label">Artistas</div></div>
+                    <div class="stat-item"><div class="stat-value"><i class="fas fa-tag"></i> -</div><div class="stat-label">Gêneros</div></div>
+                </div>
+                <button id="loginUser2" class="btn btn-secondary">
+                    <i class="fab fa-spotify"></i> Conectar Usuário 2
+                </button>
+            </div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="controls animate__animated animate__fadeInUp animate__delay-1s">
+            <div class="time-range-container">
+                <button class="time-range-btn" data-range="short_term">
+                    <i class="fas fa-calendar-week"></i> 4 Semanas
+                </button>
+                <button class="time-range-btn active" data-range="medium_term">
+                    <i class="fas fa-calendar-alt"></i> 6 Meses
+                </button>
+                <button class="time-range-btn" data-range="long_term">
+                    <i class="fas fa-calendar-check"></i> Todos os Tempos
+                </button>
+            </div>
+
+            <button id="calculateMatchBtn" class="btn btn-disabled" disabled>
+                <i class="fas fa-lock"></i> Conecte Ambos
+            </button>
+
+            <!-- Initially hidden buttons -->
+            <button id="createPlaylistBtn" class="btn btn-secondary" style="display: none;">
+                <i class="fas fa-plus-circle"></i> Criar Playlist do Match
+            </button>
+             <button id="downloadMatchBtn" class="btn btn-secondary" style="display: none;">
+                <i class="fas fa-download"></i> Baixar Imagem do Match
+            </button>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading">
+            <div class="loading-content">
+                <div class="music-wave">
+                    <div class="wave-bar"></div> <div class="wave-bar"></div> <div class="wave-bar"></div> <div class="wave-bar"></div> <div class="wave-bar"></div>
+                </div>
+                <p>Analisando suas preferências musicais...</p>
+            </div>
+        </div>
+
+        <!-- Results Area -->
+        <div id="results" style="display: none;">
+            <div class="results-header">
+                <h2 class="animate__animated animate__fadeIn">Resultados da Compatibilidade</h2>
+                <div class="compatibility-container animate__animated animate__zoomIn animate__delay-05s">
+                    <div class="compatibility-circle">
+                        <div class="circle-bg"></div>
+                        <!-- Progress indicator updated via JS -->
+                        <div id="compatibilityProgress"></div>
+                         <!-- Score text is now rendered on top -->
+                        <div class="compatibility-score" id="compatibilityScore">0%</div>
+                    </div>
+                    <p class="compatibility-message" id="compatibilityMessage"></p>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="advanced-stats animate__animated animate__fadeInUp animate__delay-1s" id="advancedStats">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-music"></i></div>
+                    <div class="stat-value" id="commonTracksCount">0</div>
+                    <div class="stat-label">Músicas Comum</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-value" id="commonArtistsCount">0</div>
+                    <div class="stat-label">Artistas Comum</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-compact-disc"></i></div>
+                    <div class="stat-value" id="commonAlbumsCount">0</div>
+                    <div class="stat-label">Álbuns Comum</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+                    <div class="stat-value" id="matchScore">0%</div>
+                    <div class="stat-label">Compatibilidade</div>
+                </div>
+            </div>
+
+            <!-- Common Tracks -->
+            <h3 class="section-title animate__animated animate__fadeInUp animate__delay-1s">
+                <i class="fas fa-headphones-alt"></i> Músicas em Comum (<span id="commonTracksNum">0</span>)
+            </h3>
+            <div class="item-grid" id="commonTracksList">
+                 <p class="no-items">Calculando...</p>
+            </div>
+
+            <!-- Common Artists -->
+            <h3 class="section-title animate__animated animate__fadeInUp animate__delay-1s">
+                <i class="fas fa-microphone-alt"></i> Artistas em Comum (<span id="commonArtistsNum">0</span>)
+            </h3>
+            <div class="item-grid" id="commonArtistsList">
+                 <p class="no-items">Calculando...</p>
+            </div>
+
+            <!-- Common Albums -->
+            <h3 class="section-title animate__animated animate__fadeInUp animate__delay-1s">
+                <i class="fas fa-record-vinyl"></i> Álbuns em Comum (<span id="commonAlbumsNum">0</span>)
+            </h3>
+            <div class="item-grid" id="commonAlbumsList">
+                 <p class="no-items">Calculando...</p>
+            </div>
+
+            <!-- Genres Chart -->
+            <h3 class="section-title animate__animated animate__fadeInUp animate__delay-1s">
+                <i class="fas fa-tags"></i> Top Gêneros em Comum
+            </h3>
+            <div class="genres-chart-section animate__animated animate__fadeInUp animate__delay-1s">
+                 <div class="chart-container">
+                     <canvas id="genresChart"></canvas>
+                     <!-- Placeholder shown via JS if no data -->
+                 </div>
+                 <div id="genreTags" class="genre-tags">
+                     <!-- Tags populated by JS -->
+                 </div>
+            </div>
+
+            <!-- Generated Playlist Confirmation -->
+            <div class="generated-playlist animate__animated animate__fadeInUp animate__delay-1s" id="generatedPlaylist" style="display: none;">
+                <h3><i class="fas fa-check-circle"></i> Playlist Criada!</h3>
+                <p>Sua playlist de match foi criada com sucesso no Spotify.</p>
+                <a href="#" class="btn" id="playlistLink" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-spotify"></i> Ouvir no Spotify
+                </a>
+                <p class="playlist-stats" id="playlistStats"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Share Image Template -->
+    <div id="shareImageTemplate">
+         <div class="share-header">
+              <div class="share-title">Spotify Match</div>
+              <div class="share-subtitle">Nossa Sincronia Musical</div>
+         </div>
+         <div class="share-users">
+              <div class="share-user">
+                   <img class="share-avatar" id="shareUser1Img" src="" alt="User 1 Avatar" crossorigin="anonymous">
+                   <div class="share-user-name" id="shareUser1Name"></div>
+              </div>
+              <div class="share-heart"><i class="fas fa-heart"></i></div>
+              <div class="share-user">
+                   <img class="share-avatar" id="shareUser2Img" src="" alt="User 2 Avatar" crossorigin="anonymous">
+                   <div class="share-user-name" id="shareUser2Name"></div>
+              </div>
+         </div>
+         <div class="share-score-container">
+              <div class="share-score-label">Score de Compatibilidade</div>
+              <div class="share-score-value" id="shareCompatibilityScore">0%</div>
+         </div>
+         <div class="share-content">
+              <div class="share-common-track" id="shareCommonTrack" style="display: none;">
+                   <img class="share-track-image" id="shareTrackImage" src="" alt="Album Cover" crossorigin="anonymous">
+                   <div class="share-track-info">
+                        <div class="share-track-label">Nossa Música Mais Comum</div>
+                        <div class="share-track-title" id="shareTrackTitle"></div>
+                        <div class="share-track-artist" id="shareTrackArtist"></div>
+                   </div>
+              </div>
+              <div class="share-sections">
+                   <div class="share-section">
+                        <div class="share-section-title"><i class="fas fa-music"></i> Top 5 Músicas</div>
+                        <div class="share-list" id="shareTopTracksList"></div>
+                   </div>
+                   <div class="share-section">
+                        <div class="share-section-title"><i class="fas fa-users"></i> Top 5 Artistas</div>
+                        <div class="share-list" id="shareTopArtistsList"></div>
+                    </div>
+                    <div class="share-section">
+                        <div class="share-section-title"><i class="fas fa-compact-disc"></i> Top 3 Álbuns</div>
+                        <div class="share-list share-album-list-container" id="shareTopAlbumsList"></div>
+                   </div>
+              </div>
+         </div>
+          <div class="share-footer">
+               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/1024px-Spotify_logo_without_text.svg.png" alt="Spotify Logo" class="spotify-logo" crossorigin="anonymous">
+               Gerado por Spotify Match Ultra+
+          </div>
+    </div>
+
+    <!-- Toast Notification Placeholder -->
+    <div id="toastNotification">Mensagem aqui</div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="script.js"></script> <!-- Your main script -->
+    <script>
+        // Particle Initialization
+        function initParticles() { /* ... as before ... */
+            const particlesContainer = document.getElementById('particles');
+            if (!particlesContainer) return;
+            const particleCount = window.innerWidth < 768 ? 15 : 25;
+            particlesContainer.innerHTML = '';
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 3.5 + 1.5;
+                particle.style.width = `${size}px`; particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`; particle.style.top = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 10}s`; particle.style.animationDuration = `${Math.random() * 10 + 12}s`;
+                particlesContainer.appendChild(particle);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            initParticles();
+            // Main app logic in script.js handles initialization via initializeApp()
+        });
+    </script>
+</body>
+</html>
